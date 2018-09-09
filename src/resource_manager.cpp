@@ -12,7 +12,7 @@ Texture2D ResourceManager::load_texture(const std::string& filename) {
     unsigned char* data = stbi_load(filename.c_str(), &width, &height, &channels, STBI_rgb_alpha);
     assert(data);
     GLuint texture_id;
-    GLGenTextures(1, &texture_id);
+    glGenTextures(1, &texture_id);
     glBindTexture(GL_TEXTURE_2D, texture_id);
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);

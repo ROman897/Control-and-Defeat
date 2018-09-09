@@ -1,30 +1,29 @@
 #include <fstream>
+#include <cassert>
 
 #include "shader.hpp"
+#include "exceptions.hpp"
 
 void Shader::compile(const std::string& filename, GLenum shader_type) {
     std::ifstream source(filename);
     if (!source.is_open()) {
-        m_compilation_status = CompilationStatus::FILE_NOT_FOUND;
-        return;
+        throw GraphicError("File" + filename + "not found");
     }
-    std::string content(std::istreambuf_iterator<char>(shader_src), std::istreambuf_iterator<char>());
+    std::string content = std::string(std::istreambuf_iterator<char>(source), std::istreambuf_iterator<char>());
+    const char* content_ptr = content.c_str();
     m_shader_id = glCreateShader(shader_type);
-    glShaderSource(m_shader_id, 1, &source.c_str(), NULL);
+    glShaderSource(m_shader_id, 1, &content_ptr, NULL);
     glCompileShader(m_shader_id);
     GLint success;
-    GLchar infoLog[1024];
     glGetShaderiv(m_shader_id, GL_COMPILE_STATUS, &success);
-    m_compilation_status = success ? CompilationStatus::SUCCESS : CompilationStatus::FAIL;
-}
-
-std::string Shader::get_log() {
-    int log_len = 0;
-    glGetShaderiv(m_shader_id, GL_INFO_LOG_LENGTH, &log_len);
-    assert(log_len > 0);
-    std::string log_message(log_len);
-    glShaderInfoLog(_shader_id, log_len, nullptr, &log_message[0]);
-    return log_message;
+    if (!success) {
+        int log_len = 0;
+        glGetShaderiv(m_shader_id, GL_INFO_LOG_LENGTH, &log_len);
+        std::string info_log;
+        info_log.resize(log_len);
+        glGetShaderInfoLog(m_shader_id, log_len, nullptr, &info_log[0]);
+        throw GraphicError(info_log);
+    }
 }
 
 VertexShader::VertexShader(const std::string& filename) {

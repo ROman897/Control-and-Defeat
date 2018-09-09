@@ -3,37 +3,27 @@
 
 #include <glad/glad.h>
 class Shader {
-public:
-    enum class CompilationStatus {
-        SUCCESS,
-        FAIL,
-        FILE_NOT_FOUND
-    };
-
+private:
+    GLuint m_shader_id;
 protected:
-    GLuing m_shader_id;
-    CompilationStatus m_compilation_status;
     Shader() = default;
+    void compile(const std::string& filename, GLenum shader_type);
 
 public:
     int get_shader_id() {
         return m_shader_id;
-    }
-    std::string get_log();
-    CompilationStatus get_compilation_status() {
-        return m_compilation_status;
     }
     virtual ~Shader() {
         glDeleteShader(m_shader_id);
     }
 };
 
-class VertexShader {
+class VertexShader : public Shader {
 public:
     VertexShader(const std::string& filename);
 };
 
-class FragmentShader {
+class FragmentShader : public Shader {
 public:
     FragmentShader(const std::string& filename);
 };
