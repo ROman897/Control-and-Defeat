@@ -3,7 +3,14 @@
 #include "engine.hpp"
 #include "exceptions.hpp"
 
+Engine::Engine(int width, int height, const std::string& title) {
+    create_new_window(width, height, title);
+    init();
+
+}
+
 void Engine::create_new_window(int width, int height, const std::string& title) {
+    glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -16,10 +23,12 @@ void Engine::create_new_window(int width, int height, const std::string& title) 
         throw GraphicError("could not create window!");
     }
     m_active_window.reset(new_window);
+    glfwMakeContextCurrent(new_window);
     glfwSetWindowUserPointer(new_window, this);
     glfwSetKeyCallback(new_window, &_on_key_callback);
     glfwSetCursorPosCallback(new_window, &_on_mouse_position);
     glfwSetMouseButtonCallback(new_window, &_on_mouse_button);
+    glfwSetWindowSizeCallback(new_window, &_on_resize);
 }
 
 void Engine::on_key_callback(int key, int action) {
@@ -100,6 +109,17 @@ uint32_t Engine::load_new_program(const std::string& vertex_shader_filename, con
     return m_programs.size() - 1;
 }
 
+void Engine::on_resize(int width, int height) {
+    m_width = width;
+    m_height = height;
+    glViewport(0, 0, width, height);
+}
+
+void Engine::_on_resize(GLFWwindow* window, int width, int height) {
+    Engine* this_ptr = static_cast<Engine*>(glfwGetWindowUserPointer(window));
+    this_ptr->on_resize(width, height);
+}
+
 void Engine::set_program(uint32_t program_id) {
     assert (program_id < m_programs.size());
     m_active_program = m_programs[program_id].get();
@@ -114,6 +134,17 @@ void Engine::init() {
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClearDepth(1.0f);
+}
+
+bool Engine::stop() {
+    return glfwWindowShouldClose(m_active_window.get());
+}
+
+void Engine::finish_frame() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    glfwSwapBuffers(m_active_window.get());
+    glfwPollEvents();
 }
 
 void Engine::set_on_key_press_callback(int key, KeyCallbackFunc func) {
@@ -140,4 +171,8 @@ void Engine::set_on_mouse_repeat_callback(int key, MouseButtonFunc func) {
 
 void Engine::set_on_mouse_release_callback(int key, MouseButtonFunc func) {
     m_mouse_callbacks[key].m_on_release = func;
+}
+
+Engine::~Engine() {
+    glfwTerminate();
 }

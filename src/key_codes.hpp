@@ -1,3 +1,4 @@
+#pragma once
 #define 	KEYCODE_UNKNOWN   -1
  
 #define 	KEYCODE_SPACE   32

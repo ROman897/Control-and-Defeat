@@ -58,7 +58,7 @@ elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL CLANG)
 endif()
 
 if (GCC OR CLANG)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -g -Wall")
 endif()
 
 
